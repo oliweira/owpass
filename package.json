@@ -1,6 +1,6 @@
 {
   "name": "owpass",
-  "main": "expo-router/entry",
+  "main": "node_modules/expo/AppEntry.js",
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
@@ -26,7 +26,6 @@
     "expo-image": "~3.0.10",
     "expo-linking": "~8.0.9",
     "expo-local-authentication": "^17.0.7",
-    "expo-router": "~6.0.15",
     "expo-secure-store": "^15.0.7",
     "expo-splash-screen": "~31.0.11",
     "expo-sqlite": "^16.0.9",
