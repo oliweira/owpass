@@ -1,21 +1,58 @@
-import { useState } from 'react';
-import { Button, Text, TextInput, View } from 'react-native';
+import { useState } from "react";
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
+export default function LoginScreen() {
+  const [password, setPassword] = useState("");
 
-export default function LoginScreen({ navigation }) {
-const [pass, setPass] = useState("");
+  return (
+    <View style={styles.container}>
+      <Text style={styles.label}>Digite sua senha:</Text>
 
+      <TextInput
+        style={styles.input}
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+        placeholder="Sua senha"
+      />
 
-function validate() {
-if (pass === "1234") navigation.replace("Home");
+      <TouchableOpacity style={styles.button}>
+        <Text style={styles.buttonText}>ENTRAR</Text>
+      </TouchableOpacity>
+    </View>
+  );
 }
 
-
-return (
-<View style={{ padding: 20 }}>
-<Text style={{ fontSize: 22 }}>Digite sua senha:</Text>
-<TextInput secureTextEntry value={pass} onChangeText={setPass} style={{ borderWidth: 1, marginVertical: 10 }} />
-<Button title="Entrar" onPress={validate} />
-</View>
-);
-}
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 20,
+    backgroundColor: "#f7f7f7",
+  },
+  label: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 15,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#888",
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 18,
+    marginBottom: 20,
+  },
+  button: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    elevation: 2,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+});
