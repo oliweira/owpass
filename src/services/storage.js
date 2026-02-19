@@ -1,15 +1,49 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
+const STORAGE_KEY = "@owpass_passwords";
 
-export async function savePassword(data) {
-const stored = await AsyncStorage.getItem('passwords');
-const list = stored ? JSON.parse(stored) : [];
-list.push(data);
-await AsyncStorage.setItem('passwords', JSON.stringify(list));
-}
+// 1. Buscar todas as senhas salvas
+export const getStoredPasswords = async () => {
+  try {
+    const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
+    return jsonValue != null ? JSON.parse(jsonValue) : [];
+  } catch (error) {
+    console.error("Erro ao buscar senhas:", error);
+    return [];
+  }
+};
 
+// 2. Salvar uma nova senha na lista existente
+export const savePassword = async (newPasswordObject) => {
+  try {
+    // Busca a lista atual primeiro
+    const currentPasswords = await getStoredPasswords();
 
-export async function getPasswords() {
-const stored = await AsyncStorage.getItem('passwords');
-return stored ? JSON.parse(stored) : [];
-}
+    // Adiciona a nova senha com um ID único (timestamp)
+    const updatedPasswords = [
+      ...currentPasswords,
+      { ...newPasswordObject, id: Date.now().toString() },
+    ];
+
+    // Salva a lista atualizada
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPasswords));
+    return true;
+  } catch (error) {
+    console.error("Erro ao salvar senha:", error);
+    return false;
+  }
+};
+
+// 3. Deletar uma senha pelo ID
+export const deletePassword = async (id) => {
+  try {
+    const currentPasswords = await getStoredPasswords();
+    const filteredPasswords = currentPasswords.filter((item) => item.id !== id);
+
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(filteredPasswords));
+    return true;
+  } catch (error) {
+    console.error("Erro ao deletar senha:", error);
+    return false;
+  }
+};
