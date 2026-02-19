@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import PasswordItem from "../components/PasswordItem";
 import { getStoredPasswords } from "../services/storage"; // Verifique se o nome da função no seu storage.js é esse
 
 const HomeScreen = ({ navigation }) => {
@@ -43,9 +42,10 @@ const HomeScreen = ({ navigation }) => {
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <TouchableOpacity
+              style={{ padding: 10, borderBottomWidth: 1 }}
               onPress={() => navigation.navigate("Details", { item })}
             >
-              <PasswordItem service={item.service} username={item.username} />
+              <Text style={{ fontSize: 18 }}>{item.service}</Text>
             </TouchableOpacity>
           )}
         />
