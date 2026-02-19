@@ -1,17 +1,12 @@
-import * as LocalAuthentication from "expo-local-authentication";
-import * as SecureStore from "expo-secure-store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export async function authenticate() {
-  const biometric = await LocalAuthentication.authenticateAsync({
-    promptMessage: "Autentique para acessar as senhas",
-  });
+const PASSWORD_KEY = "@master_password";
 
-  if (biometric.success) return true;
-
-  const storedPassword = await SecureStore.getItemAsync("master_password");
-  return storedPassword ? "PASSWORD_REQUIRED" : "SETUP_REQUIRED";
+export async function storePassword(password) {
+  await AsyncStorage.setItem(PASSWORD_KEY, password);
 }
 
-export async function saveMasterPassword(password) {
-  await SecureStore.setItemAsync("master_password", password);
+export async function getStoredPassword() {
+  const password = await AsyncStorage.getItem(PASSWORD_KEY);
+  return password;
 }

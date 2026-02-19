@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { storePassword } from "../services/auth";
 
 export default function LoginScreen({ navigation }) {
@@ -8,7 +14,7 @@ export default function LoginScreen({ navigation }) {
   async function handleLogin() {
     if (password.length < 4) return alert("Senha mínima de 4 dígitos");
     await storePassword(password);
-    navigation.replace("Home");
+    navigation.navigate("Home");
   }
 
   return (
@@ -32,5 +38,5 @@ const styles = StyleSheet.create({
   label: { fontSize: 22, marginBottom: 15 },
   input: { borderWidth: 1, padding: 15, marginBottom: 20, borderRadius: 10 },
   button: { backgroundColor: "#007AFF", padding: 15, borderRadius: 10 },
-  buttonText: { textAlign: "center", color: "#fff", fontWeight: "bold" }
+  buttonText: { textAlign: "center", color: "#fff", fontWeight: "bold" },
 });
