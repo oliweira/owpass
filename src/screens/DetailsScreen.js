@@ -1,3 +1,5 @@
+import { Ionicons } from "@expo/vector-icons"; // Para os ícones de olho e copiar
+import * as Clipboard from "expo-clipboard"; // Adicionado para copiar
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -14,11 +16,11 @@ import { deletePassword } from "../services/storage";
 const DetailsScreen = ({ route, navigation }) => {
   const { item } = route.params;
   const [decryptedPassword, setDecryptedPassword] = useState("A carregar...");
+  const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/esconder
 
   useEffect(() => {
     async function handleDecrypt() {
       try {
-        // Se a sua função decrypt for assíncrona, usamos await
         const key = getSessionKey();
         const passwordDecrypt = await decrypt(item.password, key);
         setDecryptedPassword(passwordDecrypt);
@@ -30,12 +32,21 @@ const DetailsScreen = ({ route, navigation }) => {
     handleDecrypt();
   }, [item.password]);
 
-  // Função centralizada para executar a exclusão
+  // Função para copiar a senha
+  const copyToClipboard = async () => {
+    await Clipboard.setStringAsync(decryptedPassword);
+    if (Platform.OS === "web") {
+      alert("Copiado para a área de transferência!");
+    } else {
+      Alert.alert("Copiado!", "A senha foi copiada com sucesso.");
+    }
+  };
+
   const executeDelete = async () => {
     try {
       const success = await deletePassword(item.id);
       if (success) {
-        navigation.goBack(); // Volta para a Home
+        navigation.goBack();
       } else {
         console.error("Erro ao apagar do storage");
       }
@@ -46,23 +57,13 @@ const DetailsScreen = ({ route, navigation }) => {
 
   const handleDelete = () => {
     const mensagem = `Tem certeza que deseja apagar a senha de ${item.service}?`;
-
-    // VERIFICAÇÃO DE PLATAFORMA (Importante para o Browser)
     if (Platform.OS === "web") {
-      // Se estiver no navegador, usa o confirm padrão do JS
       const confirmed = window.confirm(mensagem);
-      if (confirmed) {
-        executeDelete();
-      }
+      if (confirmed) executeDelete();
     } else {
-      // Se estiver no telemóvel (Android/iOS), usa o Alert do React Native
       Alert.alert("Excluir Senha", mensagem, [
         { text: "Cancelar", style: "cancel" },
-        {
-          text: "Excluir",
-          style: "destructive",
-          onPress: executeDelete,
-        },
+        { text: "Excluir", style: "destructive", onPress: executeDelete },
       ]);
     }
   };
@@ -77,7 +78,34 @@ const DetailsScreen = ({ route, navigation }) => {
         <Text style={styles.value}>{item.username}</Text>
 
         <Text style={styles.label}>Senha</Text>
-        <Text style={styles.passwordValue}>{decryptedPassword}</Text>
+        {/* Container horizontal para a senha e ações */}
+        <View style={styles.passwordContainer}>
+          <Text style={styles.passwordValue}>
+            {showPassword ? decryptedPassword : "••••••••"}
+          </Text>
+
+          <View style={styles.actionButtons}>
+            {/* Botão para mostrar/esconder */}
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.iconButton}
+            >
+              <Ionicons
+                name={showPassword ? "eye-off" : "eye"}
+                size={24}
+                color="#8e8e93"
+              />
+            </TouchableOpacity>
+
+            {/* Botão para copiar */}
+            <TouchableOpacity
+              onPress={copyToClipboard}
+              style={styles.iconButton}
+            >
+              <Ionicons name="copy-outline" size={24} color="#007AFF" />
+            </TouchableOpacity>
+          </View>
+        </View>
 
         {item.site && (
           <>
@@ -99,19 +127,11 @@ const DetailsScreen = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: "#f5f5f5",
-  },
+  container: { flex: 1, padding: 20, backgroundColor: "#f5f5f5" },
   card: {
     backgroundColor: "#fff",
     padding: 20,
     borderRadius: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
     elevation: 3,
     marginBottom: 30,
   },
@@ -121,16 +141,29 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 4,
   },
-  value: {
-    fontSize: 18,
-    color: "#1c1c1e",
+  value: { fontSize: 18, color: "#1c1c1e", marginBottom: 20 },
+  // Estilos novos para o container de senha
+  passwordContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#f9f9f9",
+    padding: 10,
+    borderRadius: 8,
     marginBottom: 20,
   },
   passwordValue: {
-    fontSize: 22,
-    color: "#ff3b30", // Vermelho para destacar a senha
+    fontSize: 20,
+    color: "#ff3b30",
     fontWeight: "bold",
-    marginBottom: 20,
+    fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
+  },
+  actionButtons: {
+    flexDirection: "row",
+  },
+  iconButton: {
+    marginLeft: 15,
+    padding: 5,
   },
   deleteButton: {
     backgroundColor: "#ff3b30",
@@ -138,11 +171,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
   },
-  deleteButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
+  deleteButtonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
 });
 
 export default DetailsScreen;
