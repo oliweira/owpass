@@ -1,3 +1,4 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useIsFocused } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import {
@@ -57,15 +58,24 @@ const HomeScreen = ({ navigation }) => {
             )}
           />
         )}
+      </View>
 
+      {/* COLUNA DE BOTÕES FLUTUANTES (FAB COLUMN) */}
+      <View style={styles.fabColumn}>
+        {/* Botão Adicionar (Azul - Em cima) */}
         <TouchableOpacity
-          style={styles.addButton}
           onPress={() => navigation.navigate("AddPassword")}
+          style={[styles.fab, styles.fabAdd]}
         >
-          <Text style={styles.addButtonText}>+</Text>
+          <Ionicons name="add" size={30} color="white" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-          <Text style={styles.logoutText}>Sair</Text>
+
+        {/* Botão Sair (Vermelho - Em baixo) */}
+        <TouchableOpacity
+          onPress={handleLogout}
+          style={[styles.fab, styles.fabLogout]}
+        >
+          <Ionicons name="log-out-outline" size={24} color="white" />
         </TouchableOpacity>
       </View>
     </View>
@@ -73,22 +83,53 @@ const HomeScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f5f5", padding: 20 },
-  title: { fontSize: 24, fontWeight: "bold", marginBottom: 20, color: "#333" },
+  container: { flex: 1, backgroundColor: "#f5f5f5" },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    padding: 20,
+    textAlign: "center",
+  },
   emptyText: { textAlign: "center", marginTop: 50, color: "#999" },
-  addButton: {
+  // CONTAINER DA COLUNA
+  fabColumn: {
     position: "absolute",
-    right: 30,
-    bottom: 30,
-    backgroundColor: "#007AFF",
+    bottom: 60,
+    right: 20,
+    alignItems: "center",
+    gap: 15, // Espaço entre os botões
+  },
+
+  // ESTILO BASE DO CÍRCULO
+  fab: {
     width: 60,
     height: 60,
     borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
     elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
-  addButtonText: { color: "#fff", fontSize: 30, fontWeight: "bold" },
+  fabAdd: {
+    backgroundColor: "#007AFF",
+  },
+  fabLogout: {
+    backgroundColor: "#ff4444",
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  card: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  cardText: { fontSize: 18 },
 });
 
 export default HomeScreen;
