@@ -55,7 +55,7 @@ export default function LoginScreen({ navigation }) {
         }
       }
     } catch (error) {
-      Alert.alert("Erro", "Ocorreu um problema ao processar a senha.");
+      console.error("Erro ao salvar senha:", error);
     }
   }
 

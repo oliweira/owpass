@@ -42,7 +42,8 @@ export const deletePassword = async (id) => {
     const filtered = passwords.filter((p) => p.id !== id);
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
     return true;
-  } catch (e) {
+  } catch (error) {
+    console.error("Erro ao salvar senha:", error);
     return false;
   }
 };
