@@ -37,13 +37,12 @@ export const savePassword = async (newPasswordObject) => {
 // 3. Deletar uma senha pelo ID
 export const deletePassword = async (id) => {
   try {
-    const currentPasswords = await getStoredPasswords();
-    const filteredPasswords = currentPasswords.filter((item) => item.id !== id);
-
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(filteredPasswords));
+    const passwords = await getStoredPasswords();
+    // Filtra removendo o ID que recebemos
+    const filtered = passwords.filter((p) => p.id !== id);
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
     return true;
-  } catch (error) {
-    console.error("Erro ao deletar senha:", error);
+  } catch (e) {
     return false;
   }
 };
