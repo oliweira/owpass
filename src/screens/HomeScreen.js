@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { getStoredPasswords } from "../services/storage"; // Verifique se o nome da função no seu storage.js é esse
+import { clearSessionKey } from "../services/session";
+import { getStoredPasswords } from "../services/storage";
 
 const HomeScreen = ({ navigation }) => {
   const [passwords, setPasswords] = useState([]);
@@ -23,6 +24,11 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
+  const handleLogout = () => {
+    clearSessionKey(); // Apaga a senha da RAM
+    navigation.replace("Login"); // Redireciona para o Login
+  };
+
   // Recarrega sempre que a tela ganhar foco (ao voltar de 'AddPassword')
   useEffect(() => {
     if (isFocused) {
@@ -32,31 +38,36 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Minhas Senhas</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Minhas Senhas</Text>
 
-      {passwords.length === 0 ? (
-        <Text style={styles.emptyText}>Nenhuma senha cadastrada ainda.</Text>
-      ) : (
-        <FlatList
-          data={passwords}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={{ padding: 10, borderBottomWidth: 1 }}
-              onPress={() => navigation.navigate("Details", { item })}
-            >
-              <Text style={{ fontSize: 18 }}>{item.service}</Text>
-            </TouchableOpacity>
-          )}
-        />
-      )}
+        {passwords.length === 0 ? (
+          <Text style={styles.emptyText}>Nenhuma senha cadastrada ainda.</Text>
+        ) : (
+          <FlatList
+            data={passwords}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={{ padding: 10, borderBottomWidth: 1 }}
+                onPress={() => navigation.navigate("Details", { item })}
+              >
+                <Text style={{ fontSize: 18 }}>{item.service}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        )}
 
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => navigation.navigate("AddPassword")}
-      >
-        <Text style={styles.addButtonText}>+</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => navigation.navigate("AddPassword")}
+        >
+          <Text style={styles.addButtonText}>+</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+          <Text style={styles.logoutText}>Sair</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
