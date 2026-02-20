@@ -20,8 +20,8 @@ CryptoJS.lib.WordArray.random = (nBytes) => {
 export const encrypt = (text, masterKey) => {
   try {
     return CryptoJS.AES.encrypt(text, masterKey).toString();
-  } catch (_error) {
-    return null;
+  } catch (error) {
+    return error.message || "Erro ao criptografar";
   }
 };
 
@@ -29,7 +29,7 @@ export const decrypt = (ciphertext, masterKey) => {
   try {
     const bytes = CryptoJS.AES.decrypt(ciphertext, masterKey);
     return bytes.toString(CryptoJS.enc.Utf8);
-  } catch (_error) {
-    return "Erro: Chave Inválida";
+  } catch (error) {
+    return error.message || "Erro ao descriptografar";
   }
 };
