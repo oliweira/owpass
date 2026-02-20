@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import {
-    Alert,
-    Platform,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { decrypt } from "../services/crypto";
+import { getSessionKey } from "../services/session";
 import { deletePassword } from "../services/storage";
 
 const DetailsScreen = ({ route, navigation }) => {
@@ -18,7 +19,8 @@ const DetailsScreen = ({ route, navigation }) => {
     async function handleDecrypt() {
       try {
         // Se a sua função decrypt for assíncrona, usamos await
-        const password = await decrypt(item.password);
+        const key = getSessionKey();
+        const password = await decrypt(item.password, key);
         setDecryptedPassword(password);
       } catch (error) {
         setDecryptedPassword("Erro ao descriptografar");
@@ -68,18 +70,18 @@ const DetailsScreen = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.label}>SERVIÇO</Text>
+        <Text style={styles.label}>Serviço</Text>
         <Text style={styles.value}>{item.service}</Text>
 
-        <Text style={styles.label}>USUÁRIO</Text>
-        <Text style={styles.value}>{item.user}</Text>
+        <Text style={styles.label}>Usuário</Text>
+        <Text style={styles.value}>{item.username}</Text>
 
-        <Text style={styles.label}>SENHA</Text>
+        <Text style={styles.label}>Senha</Text>
         <Text style={styles.passwordValue}>{decryptedPassword}</Text>
 
         {item.site && (
           <>
-            <Text style={styles.label}>SITE</Text>
+            <Text style={styles.label}>Site</Text>
             <Text style={styles.value}>{item.site}</Text>
           </>
         )}

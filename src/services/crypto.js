@@ -1,32 +1,35 @@
 import CryptoJS from "crypto-js";
+import * as Crypto from "expo-crypto";
 
-// use uma chave fixa apenas para teste
-// depois vamos trocar pela senha mestre do usuário e PBKDF2
-const SECRET_KEY =
-  "b1f8c8d497ce76bfffc20ea71ad38121b9c8e5f1a2d3e4f6g7h8i9j0k1l2";
+// Correção para o erro de Native Crypto que resolvemos antes
+CryptoJS.lib.WordArray.random = (nBytes) => {
+  const words = [];
+  const randomBytes = Crypto.getRandomValues(new Uint8Array(nBytes));
+  for (let i = 0; i < nBytes; i += 4) {
+    words.push(
+      (randomBytes[i] << 24) |
+        (randomBytes[i + 1] << 16) |
+        (randomBytes[i + 2] << 8) |
+        randomBytes[i + 3],
+    );
+  }
+  return new CryptoJS.lib.WordArray.init(words, nBytes);
+};
 
-// 1. Função para Criptografar (usada no AddPasswordScreen)
-export const encrypt = async (text) => {
+// Agora as funções pedem a masterKey
+export const encrypt = (text, masterKey) => {
   try {
-    const ciphertext = CryptoJS.AES.encrypt(text, SECRET_KEY).toString();
-    return ciphertext;
+    return CryptoJS.AES.encrypt(text, masterKey).toString();
   } catch (error) {
-    console.error("Erro na criptografia:", error);
     return null;
   }
 };
 
-// 2. Função para Descriptografar (usada no DetailsScreen)
-export const decrypt = async (ciphertext) => {
+export const decrypt = (ciphertext, masterKey) => {
   try {
-    const bytes = CryptoJS.AES.decrypt(ciphertext, SECRET_KEY);
-    const originalText = bytes.toString(CryptoJS.enc.Utf8);
-
-    if (!originalText) throw new Error("Falha na decodificação");
-
-    return originalText;
+    const bytes = CryptoJS.AES.decrypt(ciphertext, masterKey);
+    return bytes.toString(CryptoJS.enc.Utf8);
   } catch (error) {
-    console.error("Erro na descriptografia:", error);
-    return "Erro: Senha inválida";
+    return "Erro: Chave Inválida";
   }
 };

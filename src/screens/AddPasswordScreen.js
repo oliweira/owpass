@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button, Text, TextInput, View } from "react-native";
 import { encrypt } from "../services/crypto";
+import { getSessionKey } from "../services/session";
 import { savePassword } from "../services/storage";
 
 export default function AddPasswordScreen({ navigation }) {
@@ -10,7 +11,8 @@ export default function AddPasswordScreen({ navigation }) {
   const [site, setSite] = useState("");
 
   async function save() {
-    const encrypted = await encrypt(password);
+    const key = getSessionKey();
+    const encrypted = encrypt(password, key);
     const success = await savePassword({
       service: service,
       username: user,
