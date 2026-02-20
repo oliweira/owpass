@@ -20,8 +20,8 @@ const DetailsScreen = ({ route, navigation }) => {
       try {
         // Se a sua função decrypt for assíncrona, usamos await
         const key = getSessionKey();
-        const password = await decrypt(item.password, key);
-        setDecryptedPassword(password);
+        const passwordDecrypt = await decrypt(item.password, key);
+        setDecryptedPassword(passwordDecrypt);
       } catch (error) {
         setDecryptedPassword("Erro ao descriptografar");
         console.error(error);

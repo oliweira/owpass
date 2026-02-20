@@ -12,11 +12,11 @@ export default function AddPasswordScreen({ navigation }) {
 
   async function save() {
     const key = getSessionKey();
-    const encrypted = encrypt(password, key);
+    const passwordEncrypted = encrypt(password, key);
     const success = await savePassword({
       service: service,
       username: user,
-      password: encrypted, // Salvamos a versão segura
+      password: passwordEncrypted, // Salvamos a versão segura
       site: site,
     });
     if (success) {

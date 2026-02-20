@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { verifyPassword } from "../services/auth";
 import { setSessionKey } from "../services/session";
 
 export default function LoginScreen({ navigation }) {
@@ -13,8 +14,13 @@ export default function LoginScreen({ navigation }) {
 
   async function handleLogin() {
     if (password.length < 4) return alert("Senha mínima de 4 dígitos");
-    setSessionKey(password); // Guarda a senha real na RAM
-    navigation.navigate("Home");
+    const isValid = await verifyPassword(password);
+    if (isValid) {
+      setSessionKey(password); // Salva a chave na RAM
+      navigation.replace("Home");
+    } else {
+      alert("Senha incorreta");
+    }
   }
 
   return (
