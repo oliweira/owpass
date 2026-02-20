@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const STORAGE_KEY = "@owpass_passwords";
 
 // 1. Buscar todas as senhas salvas
-export const getStoredPasswords = async () => {
+export const getListPasswords = async () => {
   try {
     const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
     return jsonValue != null ? JSON.parse(jsonValue) : [];
@@ -17,7 +17,7 @@ export const getStoredPasswords = async () => {
 export const savePassword = async (newPasswordObject) => {
   try {
     // Busca a lista atual primeiro
-    const currentPasswords = await getStoredPasswords();
+    const currentPasswords = await getListPasswords();
 
     // Adiciona a nova senha com um ID único (timestamp)
     const updatedPasswords = [
@@ -37,7 +37,7 @@ export const savePassword = async (newPasswordObject) => {
 // 3. Deletar uma senha pelo ID
 export const deletePassword = async (id) => {
   try {
-    const passwords = await getStoredPasswords();
+    const passwords = await getListPasswords();
     // Filtra removendo o ID que recebemos
     const filtered = passwords.filter((p) => p.id !== id);
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));

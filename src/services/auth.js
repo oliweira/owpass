@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import CryptoJS from "crypto-js";
 
-const PASSWORD_KEY = "@master_password";
+const PASSWORD_KEY = "@admin_master_password"; // Chave para armazenar o HASH da senha mestra
 
 export async function storePassword(password) {
   // Guardamos o HASH para conferir o login depois

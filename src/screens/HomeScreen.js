@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import { clearSessionKey } from "../services/session";
-import { getStoredPasswords } from "../services/storage";
+import { getListPasswords } from "../services/storage";
 
 const HomeScreen = ({ navigation }) => {
   const [passwords, setPasswords] = useState([]);
@@ -17,7 +17,7 @@ const HomeScreen = ({ navigation }) => {
   // Função para buscar os dados
   const loadPasswords = async () => {
     try {
-      const data = await getStoredPasswords();
+      const data = await getListPasswords();
       setPasswords(data || []);
     } catch (error) {
       console.error("Erro ao carregar senhas:", error);
