@@ -24,7 +24,7 @@ const DetailsScreen = ({ route, navigation }) => {
         const key = getSessionKey();
         const passwordDecrypt = await decrypt(item.password, key);
         setDecryptedPassword(passwordDecrypt);
-      } catch (error) {
+      } catch (_error) {
         setDecryptedPassword("Erro ao descriptografar");
       }
     }
