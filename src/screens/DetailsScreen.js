@@ -1,5 +1,5 @@
-import { Ionicons } from "@expo/vector-icons"; // Para os ícones de olho e copiar
-import * as Clipboard from "expo-clipboard"; // Adicionado para copiar
+import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -9,14 +9,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { deletePasswordDB } from "../database/db"; // Usando a nova função do DB
 import { decrypt } from "../services/crypto";
 import { getSessionKey } from "../services/session";
-import { deletePassword } from "../services/storage";
 
 const DetailsScreen = ({ route, navigation }) => {
   const { item } = route.params;
   const [decryptedPassword, setDecryptedPassword] = useState("A carregar...");
-  const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/esconder
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     async function handleDecrypt() {
@@ -26,46 +26,30 @@ const DetailsScreen = ({ route, navigation }) => {
         setDecryptedPassword(passwordDecrypt);
       } catch (error) {
         setDecryptedPassword("Erro ao descriptografar");
-        console.error(error);
       }
     }
     handleDecrypt();
   }, [item.password]);
 
-  // Função para copiar a senha
   const copyToClipboard = async () => {
     await Clipboard.setStringAsync(decryptedPassword);
-    if (Platform.OS === "web") {
-      alert("Copiado para a área de transferência!");
-    } else {
-      Alert.alert("Copiado!", "A senha foi copiada com sucesso.");
-    }
+    Alert.alert("Copiado!", "Senha enviada para a área de transferência.");
   };
 
   const executeDelete = async () => {
-    try {
-      const success = await deletePassword(item.id);
-      if (success) {
-        navigation.goBack();
-      } else {
-        console.error("Erro ao apagar do storage");
-      }
-    } catch (error) {
-      console.error("Erro fatal ao apagar:", error);
+    const success = await deletePasswordDB(item.id);
+    if (success) {
+      navigation.goBack();
+    } else {
+      Alert.alert("Erro", "Não foi possível excluir a senha.");
     }
   };
 
   const handleDelete = () => {
-    const mensagem = `Tem certeza que deseja apagar a senha de ${item.service}?`;
-    if (Platform.OS === "web") {
-      const confirmed = window.confirm(mensagem);
-      if (confirmed) executeDelete();
-    } else {
-      Alert.alert("Excluir Senha", mensagem, [
-        { text: "Cancelar", style: "cancel" },
-        { text: "Excluir", style: "destructive", onPress: executeDelete },
-      ]);
-    }
+    Alert.alert("Excluir", `Deseja apagar a senha de ${item.service}?`, [
+      { text: "Cancelar", style: "cancel" },
+      { text: "Excluir", style: "destructive", onPress: executeDelete },
+    ]);
   };
 
   return (
@@ -78,14 +62,11 @@ const DetailsScreen = ({ route, navigation }) => {
         <Text style={styles.value}>{item.username}</Text>
 
         <Text style={styles.label}>Senha</Text>
-        {/* Container horizontal para a senha e ações */}
         <View style={styles.passwordContainer}>
           <Text style={styles.passwordValue}>
             {showPassword ? decryptedPassword : "••••••••"}
           </Text>
-
           <View style={styles.actionButtons}>
-            {/* Botão para mostrar/esconder */}
             <TouchableOpacity
               onPress={() => setShowPassword(!showPassword)}
               style={styles.iconButton}
@@ -96,8 +77,6 @@ const DetailsScreen = ({ route, navigation }) => {
                 color="#8e8e93"
               />
             </TouchableOpacity>
-
-            {/* Botão para copiar */}
             <TouchableOpacity
               onPress={copyToClipboard}
               style={styles.iconButton}
@@ -115,12 +94,8 @@ const DetailsScreen = ({ route, navigation }) => {
         )}
       </View>
 
-      <TouchableOpacity
-        style={styles.deleteButton}
-        onPress={handleDelete}
-        activeOpacity={0.7}
-      >
-        <Text style={styles.deleteButtonText}>Excluir Senha</Text>
+      <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+        <Text style={styles.deleteButtonText}>Excluir Senha Permanente</Text>
       </TouchableOpacity>
     </View>
   );
@@ -142,7 +117,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   value: { fontSize: 18, color: "#1c1c1e", marginBottom: 20 },
-  // Estilos novos para o container de senha
   passwordContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -153,18 +127,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   passwordValue: {
-    fontSize: 20,
+    fontSize: 18,
     color: "#ff3b30",
     fontWeight: "bold",
     fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
   },
-  actionButtons: {
-    flexDirection: "row",
-  },
-  iconButton: {
-    marginLeft: 15,
-    padding: 5,
-  },
+  actionButtons: { flexDirection: "row" },
+  iconButton: { marginLeft: 15 },
   deleteButton: {
     backgroundColor: "#ff3b30",
     padding: 18,

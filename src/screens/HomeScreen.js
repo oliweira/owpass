@@ -8,72 +8,75 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { getPasswords } from "../database/db";
 import { clearSessionKey } from "../services/session";
-import { getListPasswords } from "../services/storage";
+import { supabase } from "../services/supabase";
 
 const HomeScreen = ({ navigation }) => {
   const [passwords, setPasswords] = useState([]);
-  const isFocused = useIsFocused(); // Hook que detecta se a tela está ativa
+  const isFocused = useIsFocused();
 
-  // Função para buscar os dados
-  const loadPasswords = async () => {
-    try {
-      const data = await getListPasswords();
-      setPasswords(data || []);
-    } catch (error) {
-      console.error("Erro ao carregar senhas:", error);
-    }
+  const loadPasswords = () => {
+    getPasswords((data) => setPasswords(data || []));
   };
+
+  useEffect(() => {
+    if (isFocused) loadPasswords();
+  }, [isFocused]);
+
+  // ESCUTA A NUVEM EM TEMPO REAL
+  useEffect(() => {
+    const channel = supabase
+      .channel("db-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "passwords_sync" },
+        () => {
+          loadPasswords(); // Recarrega a lista se houver qualquer mudança na nuvem
+        },
+      )
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, []);
 
   const handleLogout = () => {
-    clearSessionKey(); // Apaga a senha da RAM
-    navigation.replace("Login"); // Redireciona para o Login
+    clearSessionKey();
+    navigation.replace("Login");
   };
-
-  // Recarrega sempre que a tela ganhar foco (ao voltar de 'AddPassword')
-  useEffect(() => {
-    if (isFocused) {
-      loadPasswords();
-    }
-  }, [isFocused]);
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Minhas Senhas</Text>
+      <Text style={styles.title}>Minhas Senhas</Text>
 
-        {passwords.length === 0 ? (
-          <Text style={styles.emptyText}>Nenhuma senha cadastrada ainda.</Text>
-        ) : (
-          <FlatList
-            data={passwords}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={{ padding: 10, borderBottomWidth: 1 }}
-                onPress={() => navigation.navigate("Details", { item })}
-              >
-                <Text style={{ fontSize: 18 }}>{item.service}</Text>
-              </TouchableOpacity>
-            )}
-          />
+      <FlatList
+        data={passwords}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => navigation.navigate("Details", { item })}
+          >
+            <Text style={styles.cardText}>{item.service}</Text>
+            <Ionicons name="chevron-forward" size={20} color="#ccc" />
+          </TouchableOpacity>
         )}
-      </View>
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>Nenhuma senha salva.</Text>
+        }
+        contentContainerStyle={{ paddingBottom: 150 }}
+      />
 
-      {/* COLUNA DE BOTÕES FLUTUANTES (FAB COLUMN) */}
       <View style={styles.fabColumn}>
-        {/* Botão Adicionar (Azul - Em cima) */}
         <TouchableOpacity
-          onPress={() => navigation.navigate("AddPassword")}
           style={[styles.fab, styles.fabAdd]}
+          onPress={() => navigation.navigate("AddPassword")}
         >
           <Ionicons name="add" size={30} color="white" />
         </TouchableOpacity>
-
-        {/* Botão Sair (Vermelho - Em baixo) */}
         <TouchableOpacity
-          onPress={handleLogout}
           style={[styles.fab, styles.fabLogout]}
+          onPress={handleLogout}
         >
           <Ionicons name="log-out-outline" size={24} color="white" />
         </TouchableOpacity>
@@ -82,6 +85,7 @@ const HomeScreen = ({ navigation }) => {
   );
 };
 
+// ... Seus estilos permanecem os mesmos ...
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f5f5f5" },
   title: {
@@ -89,18 +93,19 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     padding: 20,
     textAlign: "center",
+    marginTop: 40,
   },
+  card: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 20,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  cardText: { fontSize: 18 },
   emptyText: { textAlign: "center", marginTop: 50, color: "#999" },
-  // CONTAINER DA COLUNA
-  fabColumn: {
-    position: "absolute",
-    bottom: 60,
-    right: 20,
-    alignItems: "center",
-    gap: 15, // Espaço entre os botões
-  },
-
-  // ESTILO BASE DO CÍRCULO
+  fabColumn: { position: "absolute", bottom: 40, right: 20, gap: 15 },
   fab: {
     width: 60,
     height: 60,
@@ -108,28 +113,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
   },
-  fabAdd: {
-    backgroundColor: "#007AFF",
-  },
+  fabAdd: { backgroundColor: "#007AFF" },
   fabLogout: {
     backgroundColor: "#ff4444",
     width: 50,
     height: 50,
     borderRadius: 25,
+    alignSelf: "center",
   },
-  card: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  cardText: { fontSize: 18 },
 });
 
 export default HomeScreen;
