@@ -3,14 +3,14 @@ import { useIsFocused } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import {
   FlatList,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { getPasswords } from "../database/db";
+import { getPasswords, syncFromCloud } from "../database/db";
 import { clearSessionKey } from "../services/session";
-import { supabase } from "../services/supabase";
 
 const HomeScreen = ({ navigation }) => {
   const [passwords, setPasswords] = useState([]);
@@ -18,29 +18,26 @@ const HomeScreen = ({ navigation }) => {
 
   const loadPasswords = () => {
     getPasswords((data) => {
+      console.log("Dados carregados:", data);
       setPasswords(data || []);
     });
   };
 
-  useEffect(() => {
-    if (isFocused) loadPasswords();
-  }, [isFocused]);
-
   // ESCUTA A NUVEM EM TEMPO REAL
   useEffect(() => {
-    const channel = supabase
-      .channel("db-changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "passwords_sync" },
-        () => {
-          loadPasswords(); // Recarrega a lista se houver qualquer mudança na nuvem
-        },
-      )
-      .subscribe();
-
-    return () => supabase.removeChannel(channel);
-  }, []);
+    console.log(Platform.OS);
+    if (isFocused) {
+      if (Platform.OS !== "web") {
+        // No celular, antes de listar, tenta baixar novidades da nuvem
+        syncFromCloud(() => {
+          loadPasswords();
+        });
+      } else {
+        // Na web apenas carrega
+        loadPasswords();
+      }
+    }
+  }, [isFocused]);
 
   const handleLogout = () => {
     clearSessionKey();
