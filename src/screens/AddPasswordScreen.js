@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { Button, Text, TextInput, View } from "react-native";
-import { encrypt } from "../services/crypto";
+import { Alert, Button, StyleSheet, Text, TextInput, View } from "react-native";
+import { savePassword } from "../database/db"; // Importando do novo banco de dados
 import { getSessionKey } from "../services/session";
-import { savePassword } from "../services/storage";
 
 export default function AddPasswordScreen({ navigation }) {
   const [service, setService] = useState("");
@@ -11,53 +10,90 @@ export default function AddPasswordScreen({ navigation }) {
   const [site, setSite] = useState("");
 
   async function save() {
+    // 1. Validação básica
+    if (!service || !password) {
+      Alert.alert("Erro", "Por favor, preencha o serviço e a senha.");
+      return;
+    }
+
+    // 2. Recupera a chave mestra da sessão
     const key = getSessionKey();
-    const passwordEncrypted = encrypt(password, key);
-    const success = await savePassword({
-      service: service,
-      username: user,
-      password: passwordEncrypted, // Salvamos a versão segura
-      site: site,
-    });
-    if (success) {
+
+    if (!key) {
+      Alert.alert("Erro", "Sessão expirada. Faça login novamente.");
+      return;
+    }
+
+    try {
+      // 3. Salva usando a nova lógica (SQLite + Supabase)
+      // Passamos a senha em texto limpo pois o db.js cuida da criptografia
+      await savePassword(
+        {
+          service: service,
+          username: user,
+          password: password,
+          site: site,
+        },
+        key,
+      );
+
       navigation.goBack();
-    } else {
-      alert("Erro ao salvar senha");
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+      Alert.alert("Erro", "Não foi possível salvar a senha.");
     }
   }
 
   return (
-    <View style={{ padding: 20 }}>
-      <Text>Serviço *</Text>
+    <View style={styles.container}>
+      <Text style={styles.label}>Serviço *</Text>
       <TextInput
-        style={{ borderWidth: 1 }}
+        style={styles.input}
+        placeholder="Ex: Netflix, Gmail..."
         value={service}
         onChangeText={setService}
       />
 
-      <Text>Usuário</Text>
+      <Text style={styles.label}>Usuário/E-mail</Text>
       <TextInput
-        style={{ borderWidth: 1 }}
+        style={styles.input}
+        placeholder="Ex: usuario@email.com"
         value={user}
         onChangeText={setUser}
       />
 
-      <Text>Senha *</Text>
+      <Text style={styles.label}>Senha *</Text>
       <TextInput
-        style={{ borderWidth: 1 }}
+        style={styles.input}
         secureTextEntry
+        placeholder="Sua senha secreta"
         value={password}
         onChangeText={setPassword}
       />
 
-      <Text>Site</Text>
+      <Text style={styles.label}>Site (Opcional)</Text>
       <TextInput
-        style={{ borderWidth: 1 }}
+        style={styles.input}
+        placeholder="Ex: www.netflix.com"
         value={site}
         onChangeText={setSite}
       />
 
-      <Button title="Salvar" onPress={save} />
+      <View style={{ marginTop: 20 }}>
+        <Button title="Salvar Senha" onPress={save} />
+      </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { padding: 20, backgroundColor: "#fff", flex: 1 },
+  label: { fontWeight: "bold", marginTop: 15, marginBottom: 5 },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    borderRadius: 5,
+    backgroundColor: "#f9f9f9",
+  },
+});

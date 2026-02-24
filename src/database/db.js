@@ -1,69 +1,101 @@
 import CryptoJS from "crypto-js";
-import { openDatabase } from "expo-sqlite";
+import * as SQLite from "expo-sqlite";
+import { Platform } from "react-native";
 import { supabase } from "../services/supabase";
 
-const db = openDatabase("db_owpass");
+// Só abre o SQLite se NÃO for Web
+const db = Platform.OS !== "web" ? SQLite.openDatabaseSync("db_owpass") : null;
 
 export function initDB() {
-  db.transaction((tx) => {
-    // Mudamos o ID para TEXT para suportar o ID único sincronizado
-    tx.executeSql(
-      "CREATE TABLE IF NOT EXISTS passwords (id TEXT PRIMARY KEY, service TEXT, username TEXT, password TEXT, site TEXT);",
-    );
-  });
+  if (Platform.OS !== "web" && db) {
+    try {
+      db.execSync(
+        "CREATE TABLE IF NOT EXISTS passwords (id TEXT PRIMARY KEY, service TEXT, username TEXT, password TEXT, site TEXT);",
+      );
+    } catch (error) {
+      console.error("Erro ao inicializar SQLite:", error);
+    }
+  }
 }
 
-export function savePassword(item, masterKey) {
+export async function savePassword(item, masterKey) {
+  console.log("1. Iniciando savePassword para:", item.service);
+
   const encrypted = CryptoJS.AES.encrypt(item.password, masterKey).toString();
+  const id = item.id || Math.random().toString(36).substring(2, 15);
 
-  // Se não tiver ID (novo cadastro), gera um ID único
-  const id =
-    item.id ||
-    Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+  // GRAVAÇÃO LOCAL
+  if (Platform.OS !== "web" && db) {
+    try {
+      db.runSync(
+        "INSERT OR REPLACE INTO passwords (id, service, username, password, site) VALUES (?, ?, ?, ?, ?)",
+        [id, item.service, item.username, encrypted, item.site],
+      );
+      console.log("2. Sucesso no SQLite Local");
+    } catch (e) {
+      console.error("ERRO no SQLite:", e);
+    }
+  }
 
-  // 1. Salva Local
-  db.transaction((tx) => {
-    tx.executeSql(
-      "INSERT OR REPLACE INTO passwords (id, service, username, password, site) VALUES (?, ?, ?, ?, ?)",
-      [id, item.service, item.username, encrypted, item.site],
-    );
+  // GRAVAÇÃO NUVEM
+  console.log("3. Enviando para o Supabase...");
+  const { error } = await supabase.from("passwords_sync").upsert({
+    id,
+    service: item.service,
+    username: item.username,
+    password: encrypted,
+    site: item.site,
   });
 
-  // 2. Sincroniza Nuvem (upsert insere ou atualiza)
-  supabase
-    .from("passwords_sync")
-    .upsert({
-      id: id,
-      service: item.service,
-      username: item.username,
-      password: encrypted,
-      site: item.site,
-    })
-    .then(({ error }) => {
-      if (error) console.error("Erro ao sincronizar com nuvem:", error);
-    });
+  if (error) {
+    console.error("ERRO no Supabase:", error.message);
+  } else {
+    console.log("4. Sucesso no Supabase!");
+  }
 }
 
-// Nova função para deletar em ambos os lugares
+export async function getPasswords(callback) {
+  if (Platform.OS === "web") {
+    // No PC: Busca direto da Nuvem
+    const { data } = await supabase.from("passwords_sync").select("*");
+    callback(data || []);
+  } else {
+    // No Celular: Busca do SQLite local
+    try {
+      const allRows = db.getAllSync("SELECT * FROM passwords");
+      callback(allRows);
+    } catch (_error) {
+      callback([]);
+    }
+  }
+}
+
 export async function deletePasswordDB(id) {
-  return new Promise((resolve) => {
-    db.transaction((tx) => {
-      tx.executeSql("DELETE FROM passwords WHERE id = ?", [id], async () => {
-        // Após deletar local, deleta na nuvem
-        const { error } = await supabase
-          .from("passwords_sync")
-          .delete()
-          .eq("id", id);
-        resolve(!error);
-      });
-    });
-  });
+  // Apaga na Nuvem
+  await supabase.from("passwords_sync").delete().eq("id", id);
+
+  // Apaga no SQLite
+  if (Platform.OS !== "web" && db) {
+    db.runSync("DELETE FROM passwords WHERE id = ?", [id]);
+  }
+  return true;
 }
 
-export function getPasswords(callback) {
-  db.transaction((tx) => {
-    tx.executeSql("SELECT * FROM passwords", [], (_, result) => {
-      callback(result.rows._array);
-    });
-  });
+// Função para baixar dados da nuvem (útil para quando instalar em dispositivo novo)
+export async function syncFromCloud(callback) {
+  try {
+    const { data, error } = await supabase.from("passwords_sync").select("*");
+
+    if (data && !error) {
+      data.forEach((item) => {
+        db.runSync(
+          "INSERT OR REPLACE INTO passwords (id, service, username, password, site) VALUES (?, ?, ?, ?, ?)",
+          [item.id, item.service, item.username, item.password, item.site],
+        );
+      });
+      if (callback) callback();
+    }
+  } catch (error) {
+    console.error("Erro ao baixar dados da nuvem:", error);
+  }
 }

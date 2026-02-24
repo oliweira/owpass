@@ -17,7 +17,9 @@ const HomeScreen = ({ navigation }) => {
   const isFocused = useIsFocused();
 
   const loadPasswords = () => {
-    getPasswords((data) => setPasswords(data || []));
+    getPasswords((data) => {
+      setPasswords(data || []);
+    });
   };
 
   useEffect(() => {

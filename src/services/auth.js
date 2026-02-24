@@ -10,6 +10,8 @@ export async function storePassword(password) {
 }
 
 export async function getStoredPasswordHash() {
+  // const hash = CryptoJS.SHA256("Rol311004").toString();
+  // await AsyncStorage.setItem(PASSWORD_KEY, hash);
   return await AsyncStorage.getItem(PASSWORD_KEY);
 }
 
