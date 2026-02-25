@@ -98,12 +98,15 @@ const DetailsScreen = ({ route, navigation }) => {
           </>
         )}
       </View>
-      <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-        <Text style={styles.buttonText}>Excluir</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
-        <Text style={styles.buttonText}>Editar</Text>
-      </TouchableOpacity>
+      {/* Container para alinhar os botões horizontalmente */}
+      <View style={styles.buttonRow}>
+        <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
+          <Text style={styles.buttonText}>Editar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+          <Text style={styles.buttonText}>Excluir</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -141,19 +144,25 @@ const styles = StyleSheet.create({
   },
   actionButtons: { flexDirection: "row" },
   iconButton: { marginLeft: 15 },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between", // Espaça os botões igualmente
+    marginTop: 20,
+    width: "100%",
+  },
   deleteButton: {
     backgroundColor: "#ff3b30",
     padding: 18,
     borderRadius: 12,
     alignItems: "center",
-    width: "45%",
+    width: "48%",
   },
   editButton: {
     backgroundColor: "rgb(19, 187, 0)",
     padding: 18,
     borderRadius: 12,
     alignItems: "center",
-    width: "45%",
+    width: "48%",
   },
   buttonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
 });

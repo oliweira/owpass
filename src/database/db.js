@@ -57,7 +57,10 @@ export async function savePassword(item, masterKey) {
 export async function getPasswords(callback) {
   if (Platform.OS === "web") {
     // No PC: Busca direto da Nuvem
-    const { data } = await supabase.from("passwords_sync").select("*");
+    const { data } = await supabase
+      .from("passwords_sync")
+      .select("*")
+      .order("service", { ascending: true });
     callback(data || []);
   } else {
     // No Celular: Busca do SQLite local
