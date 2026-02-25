@@ -6,7 +6,9 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "light",
-    "plugins": [],
+    "plugins": [
+      "expo-secure-store"
+    ],
     "sdkVersion": "54.0.0"
   }
 }

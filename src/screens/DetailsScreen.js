@@ -52,6 +52,11 @@ const DetailsScreen = ({ route, navigation }) => {
     ]);
   };
 
+  const handleEdit = () => {
+    // Navega para a tela de adicionar, mas enviando os dados do item
+    navigation.navigate("AddPassword", { item: item, navigation });
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.card}>
@@ -93,9 +98,11 @@ const DetailsScreen = ({ route, navigation }) => {
           </>
         )}
       </View>
-
       <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-        <Text style={styles.deleteButtonText}>Excluir Senha Permanente</Text>
+        <Text style={styles.buttonText}>Excluir</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
+        <Text style={styles.buttonText}>Editar</Text>
       </TouchableOpacity>
     </View>
   );
@@ -139,8 +146,16 @@ const styles = StyleSheet.create({
     padding: 18,
     borderRadius: 12,
     alignItems: "center",
+    width: "45%",
   },
-  deleteButtonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
+  editButton: {
+    backgroundColor: "rgb(19, 187, 0)",
+    padding: 18,
+    borderRadius: 12,
+    alignItems: "center",
+    width: "45%",
+  },
+  buttonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
 });
 
 export default DetailsScreen;

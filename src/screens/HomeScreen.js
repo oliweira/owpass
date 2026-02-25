@@ -47,7 +47,6 @@ const HomeScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Minhas Senhas</Text>
-
       <FlatList
         data={passwords}
         keyExtractor={(item) => item.id}
@@ -88,11 +87,11 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f5f5f5" },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "bold",
-    padding: 20,
+    marginBottom: 20,
     textAlign: "center",
-    marginTop: 40,
+    marginTop: 20,
   },
   card: {
     flexDirection: "row",
